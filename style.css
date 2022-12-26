@@ -1,0 +1,90 @@
+body {
+    margin: 5px;
+    display: flex;
+    flex-direction: column;
+    background-color: green;
+    height: calc(100vh - 10px);
+}
+
+header {
+    margin-bottom: 5px;
+    display: flex;
+    flex-direction: row;
+}
+
+#btn-settings {
+    margin-left: auto;
+}
+
+#modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: black;
+    opacity: 0.5;
+    z-index: 1001;
+}
+
+#modal-window {
+    background-color: white;
+    margin: 5px;
+    z-index: 1002;
+    height: calc(100% - 10px);
+}
+
+#section-graph {
+    flex: 1 0 20%;
+    background-color: blue;
+    border-radius: 5px;
+    border: solid 1px black;
+}
+
+#section-metrics {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+}
+
+#metric1 {
+    border: solid 1px black;
+    position: relative;
+    flex: 1;
+    background-color: yellow;
+    margin: 5px 2.5px 5px 0;
+    border-radius: 10px;
+}
+
+#metric2 {
+    border: solid 1px black;
+    position: relative;
+    flex: 1;
+    background-color: brown;
+    margin: 5px 0 5px 2.5px;
+    border-radius: 10px;
+}
+
+
+.metric-value {
+    position: absolute;
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+}
+
+button {
+    font-size: larger;
+}
+
+.value {
+    font-size: xx-large;
+}
+
+.eenheid {
+    display: block;
+    text-align: right;
+    margin-top: -5px;
+    font-size: small;
+}
