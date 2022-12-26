@@ -4,10 +4,19 @@ ws.onmessage = (ev) => {
     console.log(ev.data);
 };
 
-window.onload = (ev) => {
+window.onload = () => {
     const settingsBtn = document.querySelector('#btn-settings');
     const modal = document.querySelector('#modal');
     settingsBtn.onclick = () => {
         modal.style.display = 'block';
     };
+    const modalDismiss = document.querySelector('#modal-dismiss');
+    modalDismiss.onclick = () => {
+        modal.style.display = 'none';
+    }
+    modal.onclick = (ev) => {
+        if (ev.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
 };

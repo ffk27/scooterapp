@@ -7,14 +7,23 @@
     </head>
     <body>
         <div id="modal">
-            <div id="modal-window">Test</div>
+            <div id="modal-window">
+                <form>
+                    <label for="websocket-url">Websocket URL:</label>
+                    <input id="websocket-url"/>
+                </form>
+                <section id="modal-control">
+                    <div id="modal-ok">✓</div>
+                    <div id="modal-dismiss" title="sluiten">×</div>
+                </section>
+            </div>
         </div>
         <header>
             <span style="margin:auto 5px">Rit #1</span>
             <button id="btn-settings">⚙</button>
         </header>
         <section id="section-graph">
-            <svg id="svg-graph" viewBox="0 0 100 100">
+            <svg id="svg-graph">
                 <circle cx="50" cy="50" r="50" />
             </svg>
         </section>
