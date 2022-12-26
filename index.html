@@ -13,19 +13,26 @@
                     <input id="websocket-url"/>
                 </form>
                 <section id="modal-control">
-                    <div id="modal-ok">✓</div>
-                    <div id="modal-dismiss" title="sluiten">×</div>
+                    <div title="opslaan" id="modal-ok">✓</div>
+                    <div title="sluiten" id="modal-dismiss" title="sluiten">×</div>
                 </section>
             </div>
         </div>
         <header>
             <span style="margin:auto 5px">Rit #1</span>
+            <span id="connection-status" style="margin:auto 5px">⇄</span>
             <button id="btn-settings">⚙</button>
         </header>
         <section id="section-graph">
-            <svg id="svg-graph">
-                <circle cx="50" cy="50" r="50" />
-            </svg>
+            <canvas id="canvas-chart"></canvas>
+            <div>
+                <select>
+                    <option>10 seconden</option>
+                    <option>30 seconden</option>
+                    <option>1 minuut</option>
+                    <option>5 minuten</option>
+                </select>
+            </div>
         </section>
         <section id="section-metrics">
             <div id="metric1">

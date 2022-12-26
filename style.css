@@ -2,8 +2,9 @@ body {
     margin: 5px;
     display: flex;
     flex-direction: column;
-    background-color: green;
+    background-color: lightblue;
     height: calc(100vh - 10px);
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 header {
@@ -45,23 +46,39 @@ header {
     flex: 1;
     float: right;
     cursor: pointer;
+    background-color: burlywood;
+    padding: 5px;
+    border: solid 1px lightgray;
+    margin-left: 2.5px;
+    cursor: pointer;
+
 }
 
 #modal-ok {
     flex: 1;
+    text-align: center;
+    background-color: lightblue;
+    padding: 5px;
+    border: solid 1px lightgray;
+    margin-right: 2px;
+    cursor: pointer;
 }
 
 #modal-control {
     display: flex;
     flex-direction: row;
     margin-top: auto;
+    text-align: center;
+    font-size: larger;
 }
 
 #section-graph {
     flex: 1 0 20%;
-    background-color: blue;
+    background-color: green;
     border-radius: 5px;
     border: solid 1px black;
+    display: flex;
+    flex-direction: column;
 }
 
 #section-metrics {
@@ -75,7 +92,7 @@ header {
     position: relative;
     flex: 1;
     background-color: yellow;
-    margin: 5px 2.5px 5px 0;
+    margin: 5px 2.5px 0 0;
     border-radius: 10px;
 }
 
@@ -84,7 +101,7 @@ header {
     position: relative;
     flex: 1;
     background-color: brown;
-    margin: 5px 0 5px 2.5px;
+    margin: 5px 0 0 2.5px;
     border-radius: 10px;
 }
 
@@ -119,4 +136,13 @@ label {
 input {
     display: block;
     width: 95%;
+}
+
+#canvas-chart {
+    height: 100%;
+    width: 100%;
+}
+
+#connection-status {
+    font-size: larger;
 }
