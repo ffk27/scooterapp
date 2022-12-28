@@ -9,7 +9,9 @@ function startConnection() {
     conn_status.color = 'gray';
     ws = new WebSocket(url);
     ws.onmessage = (ev) => {
+        const data = JSON.parse(ev.data);
         console.log(ev.data);
+        document.querySelector('#metric2 .value').textContent = parseInt(data['rpm']);
     };
     ws.onopen = () => {
         conn_status.style.color = 'green';

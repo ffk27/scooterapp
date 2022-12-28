@@ -1,35 +1,77 @@
-#include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <ESP8266WiFiMulti.h>
+#include "WiFiUdp.h"
+#include "NTPClient.h"
 #include <WebSocketsServer.h>
 #include <ESP8266WebServer.h>
-#include <Hash.h>
 
-
-// Set WiFi credentials
 #define WIFI_SSID ""
 #define WIFI_PASS ""
 
+#define REEKS_SIZE 20
+
 WebSocketsServer    webSocket = WebSocketsServer(80);
+unsigned long epochTime; // in seconds
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 0);
+unsigned long t1 = 0;
+int mn = 0;
+unsigned long values[REEKS_SIZE];
+bool clientConnected = false;
+bool engineOn = false;
 
 void setup() {
-  // Setup serial port
-  Serial.begin(115200);
-  Serial.println();
-
+  Serial.begin(9600);
   wifi_connect(WIFI_SSID, WIFI_PASS);
+  timeClient.begin();
+  timeClient.update();
+  epochTime = timeClient.getEpochTime();
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
 }
 
-void loop() {
-  if (WiFi.status() != WL_CONNECTED) { // reconnect
-    wifi_connect(WIFI_SSID, WIFI_PASS);
+String pad(String input) {
+  int len = input.length();
+  for (int i=0;i<3-len;i++) {
+    input = '0' + input;
   }
-  webSocket.loop();
-  webSocket.broadcastTXT("test123");
-  delay(50);
+  return input;
+}
 
+void loop() {
+  int value = analogRead(A0);
+  while(!clientConnected || !engineOn) {
+    webSocket.loop();
+    delay(50);
+    if (value > 500) {
+      engineOn = true;
+    }
+  }
+  unsigned long tmic = micros();
+  if (mn < REEKS_SIZE) {
+    if (value > 500) {
+      if (t1 == 0) {
+        t1 = tmic;
+      }
+      else if (tmic - 3000 > t1 + 3000) { //  
+        unsigned long td = tmic - t1;
+        values[mn] = 60000000 / td;
+        mn++;
+        t1 = tmic;
+      }  
+    } else if (tmic - t1 > 1000000) { // 1 seconde sinds laatste signaal, motor is uit
+      engineOn = false;
+    }
+  } else {
+    int tm = millis();
+    String epoch = String(epochTime + tm / 1000) + pad(String(tm % 1000));
+    qsort(values, REEKS_SIZE, sizeof(unsigned long), cmpfunc);
+    String rpm = String(values[REEKS_SIZE/2]); // mediaan
+    String json = "{\"time\": " + epoch + ", \"rpm\":" + rpm + "}";
+    webSocket.broadcastTXT(json);
+    webSocket.loop();
+    mn = 0;
+    t1 = 0;
+  }
 }
 
 void wifi_connect(char* ssid, char* password) {
@@ -45,19 +87,20 @@ void wifi_connect(char* ssid, char* password) {
   Serial.println(WiFi.localIP());
 }
 
+int cmpfunc (const void * a, const void * b) {
+   return ( *(int*)a - *(int*)b );
+}
+
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
   switch (type) {
     case WStype_DISCONNECTED:
-      Serial.printf("[%u] Disconnected!\n", num);
+      clientConnected = false;
       break;
 
     case WStype_CONNECTED: {
-        IPAddress ip = webSocket.remoteIP(num);
-        Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
-        // send message to client
-        webSocket.sendTXT(num, "0");
-      }
+      clientConnected = true;
       break;
+    }
   }
 
 }
