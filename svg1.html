@@ -5,13 +5,30 @@
             svg {
                 border: solid 1px gray;
             }
+
+            section#graph {
+                display:flex;
+            }
+
+            .y1, .y2 {
+                position: relative;
+            }
+
+            .svg-container {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .graph-x {
+                position: relative;
+            }
         </style>
         <script>
             const values = [];
             window.onload = () => {
                 let t = 0;
                 setInterval(()=>{
-                    const svg = document.querySelector('section#graph > svg');
+                    const svg = document.querySelector('section#graph svg');
                     const svgWidth = parseInt(svg.getAttribute('width'));
                     const svgHeight = parseInt(svg.getAttribute('height'));
                     const viewbox = svg.getAttribute('viewBox').split(' ');
@@ -40,7 +57,18 @@
     </head>
     <body>
         <section id="graph">
-            <svg width="640" height="480" viewBox="0 0 640 480"></svg>
+            <div class="y1">
+                <span>y1</span>
+            </div>
+            <div class="svg-container">
+                <svg width="640" height="480" viewBox="0 0 640 480">
+                    <line x1="0" y1="10" x2="640000000" y2="10" style="stroke:rgb(121, 121, 121);stroke-width:0.1"/>
+                </svg>
+                <div class="graph-x">tijd</div>
+            </div>
+            <div class="y2">
+                <span>y2</span>
+            </div>
         </section>      
     </body>
 </html>
