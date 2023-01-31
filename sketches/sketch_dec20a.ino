@@ -3,9 +3,7 @@
 #include "NTPClient.h"
 #include <WebSocketsServer.h>
 #include <ESP8266WebServer.h>
-
-#define WIFI_SSID ""
-#define WIFI_PASS ""
+#include <WiFiCreds.h>
 
 #define REEKS_SIZE 20
 

@@ -1,13 +1,19 @@
-
 let ws;
 
+const documentHeight = () => {
+    const doc = document.documentElement;
+    doc.style.setProperty('--doc-height', `${window.innerHeight}px`);
+}
+window.addEventListener("resize", documentHeight);
+documentHeight();
+
 function startConnection() {
-    const url = window.localStorage.getItem("socket_url");
-    if (!url) return;
+    const ip = window.localStorage.getItem("socket_ip");
+    if (!ip) return;
     const conn_status = document.querySelector('#connection-status');
     if (ws) ws.close();
     conn_status.color = 'gray';
-    ws = new WebSocket(url);
+    ws = new WebSocket(`ws://${ip}`);
     ws.onmessage = (ev) => {
         const data = JSON.parse(ev.data);
         console.log(ev.data);
@@ -35,11 +41,11 @@ window.onload = () => {
         modal.style.display = 'none';
     }
     const modalOk = document.querySelector('#modal-ok');
-    const inputUrl = document.querySelector('#websocket-url');
-    inputUrl.value = window.localStorage.getItem("socket_url") || '';
+    const inputUrl = document.querySelector('#websocket-ip');
+    inputUrl.value = window.localStorage.getItem("socket_ip") || '';
     modalOk.onclick = () => {
         modal.style.display = 'none';
-        window.localStorage.setItem("socket_url", inputUrl.value);
+        window.localStorage.setItem("socket_ip", inputUrl.value);
         startConnection();
     }
     modal.onclick = (ev) => {
@@ -48,10 +54,18 @@ window.onload = () => {
         }
     }
 
-    drawChart();
-    window.onresize = () => {
-        drawChart();
-    }
+    alert(navigator.bluetooth);
+    // try {
+    //     alert(ble);
+    // } catch (e) {
+    //     alert(e);
+    // }
+    
+    // ble.scan([], 5, function(device) {
+    //     alert(JSON.stringify(device));
+    // }, (error) => {
+    //     alert(error);
+    // });
 };
 
 function drawChart() {

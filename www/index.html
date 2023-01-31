@@ -2,15 +2,247 @@
 <html>
     <head>
         <meta charset="utf-8"/>
-        <script src="js/script.js"></script>
-        <link rel="stylesheet" href="style.css"/>
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1" />
+        <script>
+            let ws;
+
+            const documentHeight = () => {
+                const doc = document.documentElement;
+                doc.style.setProperty('--doc-height', `${window.innerHeight}px`);
+            }
+            window.addEventListener("resize", documentHeight);
+            documentHeight();
+
+            function startConnection() {
+                const ip = window.localStorage.getItem("socket_ip");
+                if (!ip) return;
+                const conn_status = document.querySelector('#connection-status');
+                if (ws) ws.close();
+                conn_status.color = 'gray';
+                ws = new WebSocket(`ws://${ip}`);
+                ws.onmessage = (ev) => {
+                    const data = JSON.parse(ev.data);
+                    console.log(ev.data);
+                    document.querySelector('#metric2 .value').textContent = parseInt(data['rpm']);
+                };
+                ws.onopen = () => {
+                    conn_status.style.color = 'green';
+                    conn_status.title = 'verbonden';
+                }
+                ws.onclose = () => {
+                    conn_status.style.color = 'red';
+                    conn_status.title = 'geen verbinding';
+                }
+            }
+
+            window.onload = () => {
+                startConnection();
+                const settingsBtn = document.querySelector('#btn-settings');
+                const modal = document.querySelector('#modal');
+                settingsBtn.onclick = () => {
+                    modal.style.display = 'block';
+                };
+                const modalDismiss = document.querySelector('#modal-dismiss');
+                modalDismiss.onclick = () => {
+                    modal.style.display = 'none';
+                }
+                const modalOk = document.querySelector('#modal-ok');
+                const inputUrl = document.querySelector('#websocket-ip');
+                inputUrl.value = window.localStorage.getItem("socket_ip") || '';
+                modalOk.onclick = () => {
+                    modal.style.display = 'none';
+                    window.localStorage.setItem("socket_ip", inputUrl.value);
+                    startConnection();
+                }
+                modal.onclick = (ev) => {
+                    if (ev.target == modal) {
+                        modal.style.display = 'none';
+                    }
+                }
+            };
+
+            function drawChart() {
+                const canvas = document.querySelector('#canvas-chart');
+                var ctx = canvas.getContext("2d");
+                console.log(canvas);
+                ctx.moveTo(0, 0);
+                ctx.lineTo(200, 100);
+                ctx.stroke();
+            }            
+        </script>
+        <style>
+            :root {
+            --doc-height: 100%;
+            }
+
+            html,
+            body {
+            padding: 0;
+            margin: 0;
+            height: 100vh; /* fallback for Js load */
+            height: var(--doc-height);
+            }
+
+            body {
+                display: flex;
+                flex-direction: column;
+                background-color: lightblue;
+                font-family: Arial, Helvetica, sans-serif;
+            }
+
+            header {
+                margin: 5px;
+                display: flex;
+                flex-direction: row;
+            }
+
+            #btn-settings {
+                margin-left: auto;
+            }
+
+            #modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                background-color: rgba(0,0,0,0.5);
+                z-index: 1001;
+            }
+
+            #modal-window {
+                display: flex;
+                flex-direction: column;
+                background-color: white;
+                position: absolute;
+                top: 50%; 
+                left: 50%;
+                min-width: 80%;
+                min-height: 50%;
+                padding: 10px 5px;
+                transform: translate(-50%, -50%);
+                border: solid 1px lightgray;
+            }
+
+            #modal-dismiss {
+                flex: 1;
+                float: right;
+                cursor: pointer;
+                background-color: burlywood;
+                padding: 5px;
+                border: solid 1px lightgray;
+                margin-left: 2.5px;
+                cursor: pointer;
+
+            }
+
+            #modal-ok {
+                flex: 1;
+                text-align: center;
+                background-color: lightblue;
+                padding: 5px;
+                border: solid 1px lightgray;
+                margin-right: 2px;
+                cursor: pointer;
+            }
+
+            #modal-control {
+                display: flex;
+                flex-direction: row;
+                margin-top: auto;
+                text-align: center;
+                font-size: larger;
+            }
+
+            #section-graph {
+                flex: 1 0 20%;
+                background-color: green;
+                border-radius: 5px;
+                border: solid 1px black;
+                display: flex;
+                flex-direction: column;
+                margin: 5px;
+                margin-top: 0;
+            }
+
+            #section-metrics {
+                display: flex;
+                flex-direction: row;
+                flex: 1;
+                margin: 5px;
+                margin-top: 0;
+            }
+
+            #metric1 {
+                border: solid 1px black;
+                position: relative;
+                flex: 1;
+                background-color: yellow;
+                margin: 0 2.5px 0 0;
+                border-radius: 10px;
+            }
+
+            #metric2 {
+                border: solid 1px black;
+                position: relative;
+                flex: 1;
+                background-color: brown;
+                margin: 0 0 0 2.5px;
+                border-radius: 10px;
+            }
+
+
+            .metric-value {
+                position: absolute;
+                top: 50%; 
+                left: 50%; 
+                transform: translate(-50%, -50%); 
+            }
+
+            button {
+                font-size: larger;
+            }
+
+            .value {
+                font-size: xxx-large;
+            }
+
+            .eenheid {
+                display: block;
+                text-align: right;
+                margin-top: -5px;
+                font-size: small;
+            }
+
+            label {
+                font-weight: bold;
+                font-size: smaller;
+            }
+
+            input {
+                display: block;
+                width: 95%;
+            }
+
+            #canvas-chart {
+                height: 100%;
+                width: 100%;
+            }
+
+            #connection-status {
+                font-size: larger;
+                color: darkgray;
+            }      
+                
+        </style>
     </head>
     <body>
         <div id="modal">
             <div id="modal-window">
                 <form>
-                    <label for="websocket-url">Websocket URL:</label>
-                    <input id="websocket-url"/>
+                    <label for="websocket-ip">IP-adres zender:</label>
+                    <input id="websocket-ip"/>
                 </form>
                 <section id="modal-control">
                     <div title="opslaan" id="modal-ok">✓</div>
@@ -24,7 +256,7 @@
             <button id="btn-settings">⚙</button>
         </header>
         <section id="section-graph">
-            <canvas id="canvas-chart"></canvas>
+            <!-- <canvas id="canvas-chart"></canvas> -->
             <!-- <div>
                 <select>
                     <option>10 seconden</option>
