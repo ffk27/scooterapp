@@ -132,10 +132,10 @@ int cmpfunc (const void * a, const void * b) {
 
 #if MODE==0
   void wifi_connect(char* ssid, char* password) {
-    //WiFi.begin(WIFI_SSID, WIFI_PASS);
+    WiFi.begin(ssid, password);
     //Serial.print("Connecting to WiFi");
     //Serial.print(WIFI_SSID);
-    while (wifiMulti.run()/*WiFi.status()*/ != WL_CONNECTED)
+    while (WiFi.status() != WL_CONNECTED)
     {
       delay(300);
       Serial.print(".");
