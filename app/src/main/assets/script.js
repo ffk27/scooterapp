@@ -1,4 +1,5 @@
 let ws;
+const values = [];
 
 const documentHeight = () => {
     const doc = document.documentElement;
@@ -11,8 +12,7 @@ function startConnection(ip) {
     if (ip) {
         window.localStorage.setItem("socket_ip", ip);
         const inputUrl = document.querySelector('#websocket-ip');
-        inputUrl = ip;
-        alert(ip);
+        inputUrl.value = ip;
     } else {
         ip = window.localStorage.getItem("socket_ip");
     }
@@ -59,6 +59,33 @@ window.onload = () => {
             modal.style.display = 'none';
         }
     }
+
+                let t = 0;
+                setInterval(()=>{
+                    const svg = document.querySelector('section#graph svg');
+                    const svgWidth = parseInt(svg.getAttribute('width'));
+                    const svgHeight = parseInt(svg.getAttribute('height'));
+                    const viewbox = svg.getAttribute('viewBox').split(' ');
+                    const minX = parseInt(viewbox[0]);
+                    const value = Math.floor(Math.random() * 300) + 300;
+                    t++;
+                    if (values.length > 0) {
+                        const valuePrev = values[values.length-1];
+                        const y1 = Math.floor(svgHeight - (svgHeight / 1000 * valuePrev[1]));
+                        const y2 = Math.floor(svgHeight - (svgHeight / 1000 * value));
+                        const x2 = Math.floor(svgWidth + minX + 10);
+                        const x1 = x2 - 10;
+                        const line = svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg','line'));
+                        line.setAttribute('x1', `${x1}`);
+                        line.setAttribute('y1', `${y1}`);
+                        line.setAttribute('x2', `${x2}`);
+                        line.setAttribute('y2', `${y2}`);
+                        line.style = 'stroke:rgb(0,255,0);stroke-width:2';
+                    }
+                    values.push([t, value]);
+
+                    svg.setAttribute('viewBox', `${minX+10} 0 ${svgWidth} ${svgHeight}`);
+                },333);
 };
 
 function drawChart() {
