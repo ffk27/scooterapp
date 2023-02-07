@@ -10,8 +10,8 @@
         <option name="gradleJvm" value="17" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/app" />
+            <option value="/media/ffk27/ext4/ffk27/Programmeren/scooterapp" />
+            <option value="/media/ffk27/ext4/ffk27/Programmeren/scooterapp/app" />
           </set>
         </option>
       </GradleProjectSettings>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1" />
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+    <body>
+        <div id="modal">
+            <div id="modal-window">
+                <form>
+                    <label for="websocket-ip">IP-adres zender:</label>
+                    <input id="websocket-ip"/>
+                </form>
+                <section id="modal-control">
+                    <div title="opslaan" id="modal-ok">✓</div>
+                    <div title="sluiten" id="modal-dismiss" title="sluiten">×</div>
+                </section>
+            </div>
+        </div>
+        <header>
+            <span style="margin:auto 5px">Rit #1</span>
+            <span id="connection-status" style="margin:auto 5px">⇄</span>
+            <button id="btn-settings">⚙</button>
+        </header>
+        <section id="graph">
+            <div class="y1">
+                <span>y1</span>
+            </div>
+            <div class="svg-container">
+                <svg width="640" height="480" viewBox="0 0 640 480">
+                    <line x1="0" y1="10" x2="640000000" y2="10" style="stroke:rgb(121, 121, 121);stroke-width:0.1"/>
+                </svg>
+                <div class="graph-x">tijd</div>
+            </div>
+            <div class="y2">
+                <span>y2</span>
+            </div>
+        </section>
+        <section id="section-metrics">
+            <div id="metric1">
+                <div class="metric-value">
+                    <span class="value">-</span>
+                    <span class="eenheid">km/u</span>
+                </div>
+            </div>
+            <div id="metric2">
+                <div class="metric-value">
+                    <span class="value">-</span>
+                    <span class="eenheid">tpm</span>
+                </div>
+            </div>
+        </section>
+    </body>
+</html>
