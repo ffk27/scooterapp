@@ -1,7 +1,7 @@
 #include <WiFi.h>
 #include <WiFiMulti.h>
-#include "WiFiUdp.h"
-#include "NTPClient.h"
+//#include "WiFiUdp.h"
+//#include "NTPClient.h"
 #include <WebSocketsServer.h>
 #include <BLEDevice.h>
 #include <BLEServer.h>
@@ -10,18 +10,19 @@
 #define MODE 0 // 0 = websocket, 1 = bluetooth
 #define SERVICE_UUID         "508c16b9-7ccc-46a8-907d-802b91e2b1f8"
 #define CHARACTERISTIC_UUID  "7a6082ec-79ea-45da-8129-0709de8f5d50"
-#define WIFI_SSID "DIRECT-sa-app1"
-#define WIFI_PASS "{!^[lYAX6QYw.6B s=8u"
+#define WIFI_SSID "DIRECT-sa-android"
+#define WIFI_PASS "03f3747d-250d-414f-9de8-be4d7b28c6d3"
 
 #define TMIN 6000 // minimale tijd tussen twee metingen in µs. Bij 8000 toeren neemt één omwenteling 7,5 ms seconden in beslag.
 #define REEKS_SIZE 20 // aantal metingen, waaruit de mediaan zal worden genomen. Een meting is de tijd tussen twee hoge spanningen
 #define DREMPEL 500 // drempelspanning 3,3v / 4096 * 500 = 400mV, pull-up-weerstand van 56 kilo-ohm gebruikt.
 
 #if MODE==0
-  WebSocketsServer    webSocket = WebSocketsServer(80);
-  WiFiUDP ntpUDP;
-  NTPClient timeClient(ntpUDP, "pool.ntp.org", 0);
-  WiFiMulti wifiMulti;
+  WebSocketsServer    webSocket = WebSocketsServer(8123);
+  //WiFiUDP ntpUDP;
+  //NTPClient timeClient(ntpUDP, "pool.ntp.org", 0);
+  //WiFiMulti wifiMulti;
+  WiFiClient client;
 #endif
 #if MODE==1
   BLECharacteristic *pCharacteristic;
@@ -39,10 +40,21 @@ void setup() {
   Serial.begin(9600);  
   #if MODE==0
     wifi_connect(WIFI_SSID, WIFI_PASS);
-    timeClient.begin();
-    timeClient.update();
-    epochTime = timeClient.getEpochTime();
-    Serial.println("Time: " + String(epochTime));
+    //timeClient.begin();
+    //timeClient.update();
+    //epochTime = timeClient.getEpochTime();
+    //Serial.println("Time: " + String(epochTime));
+    IPAddress gateway = WiFi.gatewayIP();
+    if (client.connect(gateway, 3123)) {
+      Serial.println("receiving time");
+//      while (client.available()) {
+//        char c = client.read();
+//        Serial.print(c);
+//        delay(100);
+//      }
+    } else {
+      Serial.println("failed");
+    }
     webSocket.begin();
     webSocket.onEvent(webSocketEvent);
   #endif
@@ -143,6 +155,7 @@ int cmpfunc (const void * a, const void * b) {
     Serial.println("Connected to " + WiFi.SSID());
     Serial.print("Connected! IP address: ");
     Serial.println(WiFi.localIP());
+    Serial.println(WiFi.gatewayIP());
   }
 
   void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {

@@ -104,7 +104,7 @@ header {
     border: solid 1px black;
     position: relative;
     flex: 1;
-    background-color: yellow;
+    background-color: forestgreen;
     margin: 0 2.5px 0 0;
     border-radius: 10px;
 }
@@ -151,33 +151,11 @@ input {
     width: 95%;
 }
 
-#canvas-chart {
-    height: 100%;
-    width: 100%;
-}
-
 #connection-status {
     font-size: larger;
     color: darkgray;
 }
 
 svg {
-    border: solid 1px gray;
-}
-
-section#graph {
-    display:flex;
-}
-
-.y1, .y2 {
-    position: relative;
-}
-
-.svg-container {
-    display: flex;
-    flex-direction: column;
-}
-
-.graph-x {
-    position: relative;
+    height: 100%;
 }

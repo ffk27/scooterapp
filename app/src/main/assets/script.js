@@ -1,5 +1,6 @@
 let ws;
 const values = [];
+let svgFn;
 
 const documentHeight = () => {
     const doc = document.documentElement;
@@ -20,20 +21,30 @@ function startConnection(ip) {
     const conn_status = document.querySelector('#connection-status');
     if (ws) ws.close();
     conn_status.color = 'gray';
-    ws = new WebSocket(`ws://${ip}`);
+
+    ws = new WebSocket(`ws://${ip}:8123`);
     ws.onmessage = (ev) => {
         const data = JSON.parse(ev.data);
         console.log(ev.data);
-        document.querySelector('#metric2 .value').textContent = parseInt(data['rpm']);
+        const rpm = parseInt(data['rpm']);
+        svgFn && svgFn(rpm);
+        document.querySelector('#metric2 .value').textContent = rpm;
     };
     ws.onopen = () => {
         conn_status.style.color = 'green';
         conn_status.title = 'verbonden';
     }
-    ws.onclose = () => {
+    ws.onclose = (ev) => {
         conn_status.style.color = 'red';
         conn_status.title = 'geen verbinding';
+        ws = null;
+        setTimeout(() => {
+            if (!ws) { // retry opening connection after 1 sec
+                startConnection();
+            }
+        }, 1000);
     }
+
 }
 
 window.onload = () => {
@@ -60,32 +71,56 @@ window.onload = () => {
         }
     }
 
-                let t = 0;
-                setInterval(()=>{
-                    const svg = document.querySelector('section#graph svg');
-                    const svgWidth = parseInt(svg.getAttribute('width'));
-                    const svgHeight = parseInt(svg.getAttribute('height'));
-                    const viewbox = svg.getAttribute('viewBox').split(' ');
-                    const minX = parseInt(viewbox[0]);
-                    const value = Math.floor(Math.random() * 300) + 300;
-                    t++;
-                    if (values.length > 0) {
-                        const valuePrev = values[values.length-1];
-                        const y1 = Math.floor(svgHeight - (svgHeight / 1000 * valuePrev[1]));
-                        const y2 = Math.floor(svgHeight - (svgHeight / 1000 * value));
-                        const x2 = Math.floor(svgWidth + minX + 10);
-                        const x1 = x2 - 10;
-                        const line = svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg','line'));
-                        line.setAttribute('x1', `${x1}`);
-                        line.setAttribute('y1', `${y1}`);
-                        line.setAttribute('x2', `${x2}`);
-                        line.setAttribute('y2', `${y2}`);
-                        line.style = 'stroke:rgb(0,255,0);stroke-width:2';
-                    }
-                    values.push([t, value]);
+    const section_graph = document.querySelector('section#graph');
+    const svg = section_graph.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'svg'));
+    const svgWidth = section_graph.offsetWidth;
+    const svgHeight = section_graph.offsetHeight;
+    svg.setAttribute("width", svgWidth);
+    svg.setAttribute("height", svgHeight);
+    svg.setAttribute("viewBox", "0 0 " + svgWidth + " " + svgHeight);
 
-                    svg.setAttribute('viewBox', `${minX+10} 0 ${svgWidth} ${svgHeight}`);
-                },333);
+    let t = 0;
+
+    svgFn = (value) => {
+          const viewBox = svg.getAttribute("viewBox").split(' ').map(v => parseInt(v));
+          const minX = viewBox[0];
+          t++;
+          if (values.length > 0) {
+              const valuePrev = values[values.length-1];
+              const y1 = Math.floor(svgHeight - (svgHeight / 10000 * valuePrev[1]));
+              const y2 = Math.floor(svgHeight - (svgHeight / 10000 * value));
+              const x2 = Math.floor(svgWidth + minX + 3);
+              const x1 = x2 - 3;
+              const line = svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg','line'));
+              line.setAttribute('x1', `${x1}`);
+              line.setAttribute('y1', `${y1}`);
+              line.setAttribute('x2', `${x2}`);
+              line.setAttribute('y2', `${y2}`);
+              line.style = 'stroke:brown;stroke-width:2';
+              const circle = svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg','circle'));
+              circle.setAttribute('cx', x1);
+              circle.setAttribute('cy', y1);
+              circle.setAttribute('r', 10);
+              circle.setAttribute('fill-opacity', '0');
+              circle.onclick = () => {
+                  circle.setAttribute('r', 3);
+                  circle.setAttribute('fill-opacity', '1');
+                  const text = svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg','text'));
+                  text.setAttribute('x', x1 - 15);
+                  text.setAttribute('y', y1 - 10);
+                  text.textContent = '' + value;
+              }
+          }
+          values.push([t, value]);
+
+          svg.setAttribute('viewBox', `${minX+3} 0 ${svgWidth} ${svgHeight}`);
+    }
+
+//      setInterval(()=>{
+//
+//        console.log();
+//        svgFn(Math.floor(Math.random() * 6000) + 1800);
+//      }, 333);
 };
 
 function drawChart() {

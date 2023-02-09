@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.TextView;
 
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements WifiP2pManager.Ac
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
         webView.setWebChromeClient(new WebChromeClient());
+        webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         webView.loadUrl("file:///android_asset/index.html");
 
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
@@ -69,8 +71,8 @@ public class MainActivity extends AppCompatActivity implements WifiP2pManager.Ac
         WifiP2pManager manager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         WifiP2pManager.Channel channel = manager.initialize(this, getMainLooper(), null);
         WifiP2pConfig.Builder builder = new WifiP2pConfig.Builder();
-        builder.setNetworkName("DIRECT-xy-app1");
-        builder.setPassphrase("app1-pw-123");
+        builder.setNetworkName("DIRECT-sa-android");
+        builder.setPassphrase("03f3747d-250d-414f-9de8-be4d7b28c6d3");
         builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_2GHZ);
         WifiP2pConfig config = builder.build();
         manager.createGroup(channel, builder.build(), this);
@@ -79,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements WifiP2pManager.Ac
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
+                Log.d("--------", action);
                 if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
                     manager.requestPeers(channel, new WifiP2pManager.PeerListListener() {
                         @Override
@@ -103,6 +106,8 @@ public class MainActivity extends AppCompatActivity implements WifiP2pManager.Ac
                 serverSocket.setReuseAddress(true);
                 Socket client = serverSocket.accept();
                 long unixTime = System.currentTimeMillis() / 1000;
+//                BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+//                in.read();
                 OutputStream outputStream = client.getOutputStream();
                 outputStream.write(Long.toString(unixTime).getBytes());
                 outputStream.close();
@@ -111,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements WifiP2pManager.Ac
                 serverSocket.close();
                 return address;
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.d("--------------", e.getMessage());
                 return null;
             }
         }
@@ -126,7 +131,10 @@ public class MainActivity extends AppCompatActivity implements WifiP2pManager.Ac
 
     @Override
     public void onSuccess() {
-        //tv1.append("\nGroup created successfully");
+        if (timeServer == null || timeServer.getStatus() == AsyncTask.Status.FINISHED) {
+           timeServer = new TimeServer();
+           timeServer.execute();
+        }
     }
 
     @Override
