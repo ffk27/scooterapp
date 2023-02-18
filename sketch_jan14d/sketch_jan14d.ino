@@ -7,11 +7,12 @@
 #include <BLEServer.h>
 #include <BLE2902.h>
 
-#define MODE 0 // 0 = websocket, 1 = bluetooth
+#define MODE 1 // 0 = websocket, 1 = bluetooth
 #define SERVICE_UUID         "508c16b9-7ccc-46a8-907d-802b91e2b1f8"
 #define CHARACTERISTIC_UUID  "7a6082ec-79ea-45da-8129-0709de8f5d50"
 #define WIFI_SSID "DIRECT-sa-android"
 #define WIFI_PASS "03f3747d-250d-414f-9de8-be4d7b28c6d3"
+#define BLUETOOTH_NAME "xiao-esp32-c3"
 
 #define TMIN 6000 // minimale tijd tussen twee metingen in µs. Bij 8000 toeren neemt één omwenteling 7,5 ms seconden in beslag.
 #define REEKS_SIZE 20 // aantal metingen, waaruit de mediaan zal worden genomen. Een meting is de tijd tussen twee hoge spanningen
@@ -44,17 +45,7 @@ void setup() {
     //timeClient.update();
     //epochTime = timeClient.getEpochTime();
     //Serial.println("Time: " + String(epochTime));
-    IPAddress gateway = WiFi.gatewayIP();
-    if (client.connect(gateway, 3123)) {
-      Serial.println("receiving time");
-//      while (client.available()) {
-//        char c = client.read();
-//        Serial.print(c);
-//        delay(100);
-//      }
-    } else {
-      Serial.println("failed");
-    }
+
     webSocket.begin();
     webSocket.onEvent(webSocketEvent);
   #endif
@@ -72,14 +63,21 @@ String pad(String input) {
   return input;
 }
 
+
 void loop() {
+  // uint8_t value = random(100) + 33;
+  // Serial.printf("*** NOTIFY: %d ***\n", value);
+  // pCharacteristic->setValue(&value, 1);
+  // pCharacteristic->notify();
+  // delay(333);
   #if MODE==0
     while (WiFi.status() != WL_CONNECTED) {
       Serial.println("reconnecting");
       wifi_connect(WIFI_SSID, WIFI_PASS);
     }
   #endif
-  int value = analogRead(A0);
+  //int value = analogRead(A0);
+  int value = random(502);
   if(!clientConnected || !engineOn) {// 
     #if MODE==0
       webSocket.loop();
@@ -115,18 +113,35 @@ void loop() {
         webSocket.loop();
       #endif
     }
-    int tm = millis();
-    String epoch = String(epochTime + tm / 1000) + pad(String(tm % 1000));
+    
+    
     qsort(values, REEKS_SIZE, sizeof(unsigned long), cmpfunc);
-    String rpm = String(values[REEKS_SIZE/2]); // mediaan
-    Serial.println(rpm);
-    String json = "{\"time\": " + epoch + ", \"rpm\":" + rpm + "}";
+    
+    unsigned long tm = millis();
+    unsigned long rpm = values[REEKS_SIZE/2]; // mediaan
+    Serial.println(String(rpm) + "");
+    
     #if MODE==0
+      
+      String rpm = String(rpm);
+      String epoch = String(epoch + tm / 1000) + pad(String(tm % 1000));
+      String json = "{\"time\":" + epoch + ", \"rpm\":" + rpm + "}";
       webSocket.broadcastTXT(json);
     #endif
     #if MODE==1
-      std::string tests = "fdsfds" + random(256);
-      pCharacteristic->setValue(tests);
+      
+      //String sensor_data = epoch + "," + rpm;
+      uint8_t sensor_data[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+      sensor_data[3] = tm;
+      sensor_data[2] = tm >> 8;
+      sensor_data[1] = tm >> 16;
+      sensor_data[0] = tm >> 24;
+      sensor_data[7] = rpm;
+      sensor_data[6] = rpm >> 8;
+      sensor_data[5] = rpm >> 16;
+      sensor_data[4] = rpm >> 24;
+      //a = epochTime + tm; 
+      pCharacteristic->setValue(&sensor_data[0], 16);
       pCharacteristic->notify();
     #endif
     ts = millis();
@@ -156,6 +171,18 @@ int cmpfunc (const void * a, const void * b) {
     Serial.print("Connected! IP address: ");
     Serial.println(WiFi.localIP());
     Serial.println(WiFi.gatewayIP());
+
+    IPAddress gateway = WiFi.gatewayIP();
+    if (client.connect(gateway, 3123)) {
+      Serial.println("receiving time");
+//      while (client.available()) {
+//        char c = client.read();
+//        Serial.print(c);
+//        delay(100);
+//      }
+    } else {
+      Serial.println("failed");
+    }
   }
 
   void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
@@ -177,30 +204,43 @@ int cmpfunc (const void * a, const void * b) {
       void onConnect(BLEServer* pServer) {
         Serial.println("connected");
         clientConnected = true;
+        pServer->getAdvertising()->start();
       };
    
       void onDisconnect(BLEServer* pServer) {
         Serial.println("disconnected");
-        clientConnected = false;
+        
+        if (pServer->getConnectedCount() == 0) {
+          clientConnected = false;
+        }
         pServer->getAdvertising()->start();
       }
   };
   
   void initBluetooth() {
-    BLEDevice::init("xiao-esp32-c3");
+    BLEDevice::init(BLUETOOTH_NAME);
     BLEServer *pServer = BLEDevice::createServer();
     pServer->setCallbacks(new ServerCallbacks());
     BLEService *pService = pServer->createService(SERVICE_UUID);
-    pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_NOTIFY);               
-    pService->start();
+    pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID, 
+                      //BLECharacteristic::PROPERTY_READ   |
+                      // BLECharacteristic::PROPERTY_WRITE  |
+                      BLECharacteristic::PROPERTY_NOTIFY //|
+                      // BLECharacteristic::PROPERTY_INDICATE    
+    );               
+
+    BLEDescriptor *descriptor = new BLE2902();
+    descriptor->setValue("sensor_data");
+    pCharacteristic->addDescriptor(descriptor);
+
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-    //pCharacteristic->setValue("sensor data");
-    //pCharacteristic->addDescriptor(new BLE2902());
+    pAdvertising->addServiceUUID(SERVICE_UUID);
+    pAdvertising->setScanResponse(true);
+    pAdvertising->setMinPreferred(0x06);
+    pAdvertising->setMinPreferred(0x12); 
     pServer->getAdvertising()->start();
-  //  BLEDevice::startAdvertising();
-  //  pAdvertising->(SERVICE_UUID);
-//    pAdvertising->setScanResponse(true);
-//    pAdvertising->setMinPreferred(0x06);
-//    pAdvertising->setMinPreferred(0x12);  
+
+    pService->addCharacteristic(pCharacteristic);
+    pService->start();
   }
 #endif

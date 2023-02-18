@@ -1,6 +1,9 @@
 let ws;
 const values = [];
 let svgFn;
+let activeCircle;
+let activeText;
+let conn_status;
 
 const documentHeight = () => {
     const doc = document.documentElement;
@@ -9,46 +12,57 @@ const documentHeight = () => {
 window.addEventListener("resize", documentHeight);
 documentHeight();
 
-function startConnection(ip) {
-    if (ip) {
-        window.localStorage.setItem("socket_ip", ip);
-        const inputUrl = document.querySelector('#websocket-ip');
-        inputUrl.value = ip;
-    } else {
-        ip = window.localStorage.getItem("socket_ip");
-    }
-    if (!ip) return;
-    const conn_status = document.querySelector('#connection-status');
-    if (ws) ws.close();
-    conn_status.color = 'gray';
-
-    ws = new WebSocket(`ws://${ip}:8123`);
-    ws.onmessage = (ev) => {
-        const data = JSON.parse(ev.data);
-        console.log(ev.data);
-        const rpm = parseInt(data['rpm']);
-        svgFn && svgFn(rpm);
-        document.querySelector('#metric2 .value').textContent = rpm;
-    };
-    ws.onopen = () => {
-        conn_status.style.color = 'green';
-        conn_status.title = 'verbonden';
-    }
-    ws.onclose = (ev) => {
-        conn_status.style.color = 'red';
-        conn_status.title = 'geen verbinding';
-        ws = null;
-        setTimeout(() => {
-            if (!ws) { // retry opening connection after 1 sec
-                startConnection();
-            }
-        }, 1000);
-    }
-
+function onReceive(json) {
+    const data = JSON.parse(json);
+    const rpm = parseInt(data['rpm']);
+    svgFn && svgFn(rpm);
+    document.querySelector('#metric2 .value').textContent = rpm;
 }
 
+function connected() {
+    conn_status.style.color = 'green';
+    conn_status.title = 'verbonden';
+}
+
+function disconnected() {
+    conn_status.style.color = 'red';
+    conn_status.title = 'geen verbinding';
+}
+
+//function startConnection(ip) {
+//    if (ip) {
+//        window.localStorage.setItem("socket_ip", ip);
+//        const inputUrl = document.querySelector('#websocket-ip');
+//        inputUrl.value = ip;
+//    } else {
+//        ip = window.localStorage.getItem("socket_ip");
+//    }
+//    if (!ip) return;
+//    if (ws) ws.close();
+//    conn_status.color = 'gray';
+//
+//    ws = new WebSocket(`ws://${ip}:8123`);
+//    ws.onmessage = (ev) => {
+//        onReceive(ev.data);
+//    };
+//    ws.onopen = () => {
+//        connected();
+//    }
+//    ws.onclose = (ev) => {
+//        disconnected();
+//        ws = null;
+//        setTimeout(() => {
+//            if (!ws) { // retry opening connection after 1 sec
+//                startConnection();
+//            }
+//        }, 1000);
+//    }
+//
+//}
+
 window.onload = () => {
-    startConnection();
+    conn_status = document.querySelector('#connection-status');
+    //startConnection();
     const settingsBtn = document.querySelector('#btn-settings');
     settingsBtn.onclick = () => {
         modal.style.display = 'block';
@@ -103,12 +117,18 @@ window.onload = () => {
               circle.setAttribute('r', 10);
               circle.setAttribute('fill-opacity', '0');
               circle.onclick = () => {
+                  if (activeCircle) { // hide the last clicked circle
+                      activeCircle.setAttribute('fill-opacity', '0');
+                  }
+                  if (activeText) {
+                      activeText.remove();
+                  }
                   circle.setAttribute('r', 3);
                   circle.setAttribute('fill-opacity', '1');
-                  const text = svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg','text'));
-                  text.setAttribute('x', x1 - 15);
-                  text.setAttribute('y', y1 - 10);
-                  text.textContent = '' + value;
+                  activeText = svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg','text'));
+                  activeText.setAttribute('x', x1 - 15);
+                  activeText.setAttribute('y', y1 - 10);
+                  activeText.textContent = '' + value;
               }
           }
           values.push([t, value]);
