@@ -18,7 +18,7 @@ body {
 }
 
 header {
-    margin: 5px;
+    margin: 10px;
     display: flex;
     flex-direction: row;
 }
@@ -83,7 +83,7 @@ header {
 }
 
 #graph {
-    flex: 1 0 20%;
+    flex: 1 0 30%;
     background-color: white;
     border-radius: 5px;
     border: solid 1px black;
@@ -127,7 +127,7 @@ header {
 }
 
 button {
-    font-size: larger;
+    font-size: x-large;
 }
 
 .value {
@@ -152,7 +152,7 @@ input {
 }
 
 #connection-status {
-    font-size: larger;
+    font-size: xx-large;
     color: darkgray;
 }
 
